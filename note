@@ -1,0 +1,17 @@
+#!/bin/bash
+case "$1" in
+	"tz")
+		if [ "$2" == "-e" ] || [ "$2" == "-x" ]; then
+			~/note/qcom/note_tz
+		else
+			vim ~/note/qcom/note_tz
+		fi
+		;;
+	"")
+		vim ~/bin/naming
+		;;
+	"*")
+		vim ~/bin/naming
+		;;
+esac
+

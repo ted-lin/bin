@@ -1,0 +1,93 @@
+#!/bin/bash
+####################
+# used for name map.
+####################
+GREEN="\033[1;32m"
+YELLOW="\033[1;33m"
+RED="\033[1;31m"
+END="\033[0m"
+
+function echo_qcom() {
+	echo -e "$YELLOW \rQualcomm name mapping: $END"
+	echo "SWD   = "
+	echo "WSM   = "
+	echo "SMC   = "
+	echo "SCM   = Secure Channel Manager"
+	echo "QSEE  = Qualcomm Secure Execute Environment"
+	echo "MCI   = Mobicore Control Interface"
+	echo "MCP   = MobiCore Control Protocol"
+	echo "FCI   = FastCall Interface"
+	echo "NQ    = Notification Queue"
+	echo "rsp   = Pointer to Resposnse structure"
+	echo "SVC   = I think it will be Service"
+	echo "KMKB  = Key Master Key Blob in hex"
+
+	echo "";
+}
+
+function note_porting() {
+echo -e "$YELLOW \rQualcomm porting note: $END"
+echo -e "
+in 8064-test and JB folder, have external/mobicore,
+but in android-4.2.1 whitout that folder. 
+The same point is they all have drivers/gud/mobicore_xxx
+(mobicore_driver and mobicore_kernelapi)
+in kernel folder.( android-4.2.1 without kernel, so i put
+JB's kernel inside there.)
+Beside this, in vendor/qcom/properitary/securemsm/ still
+have mobicore folder.
+It should be the bridge between secure world and non-secure world.
+
+
+So the flow will like below:
+$GREEN \rxxx_service -> QSAPP -> Linux(driver/mobicore) <-> secure world (maybe TZ) $END
+
+There is a test program in: 
+$RED \rvendor/qcom/proprietary/securemsm/securitytest $END
+this program is used to check the protect is correct or not.
+
+"
+}
+
+function note_tz() {
+~/note/qcom/note_tz
+}
+
+choose=
+
+if [ "$1" == "qcom" ]; then
+	echo_qcom;
+	echo -e "$YELLOW \rchoose note: $END"
+	echo "1.porting"
+	echo "2.TZ"
+	read choose
+	echo ""	
+	case $choose in
+	"1")
+		note_porting
+		;;
+	"2")
+		note_tz
+		;;
+	"")
+		exit 0
+		;;
+	"*")
+		exit
+		;;
+	esac
+
+
+	#if [ "$choose" == "1" ]; then
+	#	note_porting;
+	#elif [ "$choose" == "2" ]; then
+	#	note_tz;
+	#elif [ "$choose" == "" ]; then
+	#	exit 0;
+	#fi
+else
+	echo "choose target!"
+fi
+
+
+

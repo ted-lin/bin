@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#function go() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: godir <regex>"
+        return
+    fi
+    mkdir -p ~/tmp
+	touch ~/tmp/tmpstring_mk
+     tmpstring=$(\awk "NR==1" ~/tmp/tmpstring_mk) #search pattern
+     tmppwd=($(\awk "NR==2" ~/tmp/tmpstring_mk)) #search pwd
+     tmppwd1=($(\pwd)) # current path
+     tmp=$(echo $@ | sed s/*/[0-9a-zA-Z_-]*/g)
+    if [ "$tmpstring" != "$1" ] || [ "$tmppwd" != "$tmppwd1" ]; then
+        echo "searching"
+        (\find . -name .repo -prune -o -name .git -prune -o -type f \( -name '*.mk' -o -name '*_defconfig' -o -name '*.sh' -o -name '*.scons' -o -name '*.py' -o -name '*.cmd' -o -name 'SConscript' -o -name '*.sconscript' -o -name '*.elf' -o -name '*.sym' -o -name '*.map' \) -print0 | xargs -0 grep --color -H -n "$tmp" |tee ~/tmp/purefile_mk)
+        sed s/:/\ /g ~/tmp/purefile_mk | awk '{print $1}' > ~/tmp/filepath_mk
+        sed s/:/\ /g ~/tmp/purefile_mk | awk '{print $2}' > ~/tmp/fileline_mk
+        cat ~/tmp/purefile_mk | sed s/^[a-zA-Z0-9./_]*/\ /g | sed s/^\ :[0-9]*:/tmp\ /g | awk '{$1=""; print $0}' > ~/tmp/filenote_mk
+        echo $@ > ~/tmp/tmpstring_mk
+        pwd >> ~/tmp/tmpstring_mk
+    fi
+    #lines=
+    lines=($(\cat ~/tmp/filepath_mk))
+    if [[ ${#lines[@]} = 0 ]]; then
+        echo "Not found"
+        exit
+    fi
+    pathname=
+    choice=
+    if [[ ${#lines[@]} > 0 ]]; then
+        while [[ -z "$pathname" ]]; do
+             index=1
+             line=
+            for line in ${lines[@]}; do
+                printf "[\033[1;32m%6s\033[0m] \033[0;35m%s\033[0m \033[0;36m:\033[0m\033[0;32m%s\033[0m\033[0;36m:\033[0m " "$index" $line "$(\awk "NR==$index" ~/tmp/fileline_mk)"
+                awk "NR==$index" ~/tmp/filenote_mk | grep --color "$tmp"
+                index=$(($index + 1))
+            done
+            echo
+            echo -ne "\033[1;33mSelect one\033[0m: "
+            unset choice
+            read choice
+            if [[ $choice -gt ${#lines[@]} || $choice -lt 1 ]]; then
+                echo "Invalid choice"
+                continue
+            fi
+            pathname=${lines[$(($choice-1))]}
+        done
+    else
+        pathname=${lines[0]}
+    fi
+     number=($(\awk "NR==$choice" ~/tmp/fileline_mk)-1)
+    vim +$number/"$tmp" $pathname
+#}
+
+#go $1
