@@ -1,0 +1,12 @@
+#!/bin/bash
+
+filepath="$(pwd)/$1"
+target="/home/ted/note/qcom/note_$2"
+ 
+if [ "$3" == "-s" ]; then
+echo "file path to target"
+echo "path = $filepath"
+echo "target = $target"
+fi
+
+echo "$filepath" >> $target

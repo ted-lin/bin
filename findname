@@ -1,0 +1,86 @@
+#!/bin/bash
+
+function go() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: godir <regex>"
+        return
+    fi
+    mkdir -p ~/tmp
+	touch ~/tmp/tmpstring_fun
+    local tmpstring=($(\awk "NR==1" ~/tmp/tmpstring_fun)) #search pattern
+    local tmppwd=($(\awk "NR==2" ~/tmp/tmpstring_fun)) #search pwd
+    #local tmppwd1=($(\pwd)) # current path
+    local tmp=($(\echo $1 | sed s/*/[0-9a-zA-Z_-]*/g))
+    local current_in=$(\pwd)
+    if [ "$tmpstring" != "$1" ] || [ "$tmppwd" != "$current_in" ]; then
+        (\find -name "$1" > ~/tmp/purefile_fun)
+        sed s/:/\ /g ~/tmp/purefile_fun | sed s/^.//g | awk -v var=$current_in '{print var $1}' > ~/tmp/filepath_fun_abs
+        sed s/:/\ /g ~/tmp/purefile_fun | sed s/^.//g | awk  '{print $1}' > ~/tmp/filepath_fun
+        sed s/:/\ /g ~/tmp/purefile_fun | awk '{print $2}' > ~/tmp/fileline_fun
+        #sed -e 's/[^ ]* //'  ~/tmp/purefile_fun > ~/tmp/filenote_fun
+        cat ~/tmp/purefile_fun | sed s/^[a-zA-Z0-9./_]*/\ /g | sed s/^\ :[0-9]*:/tmp\ /g | awk '{$1=""; print $0}' > ~/tmp/filenote_fun
+        echo $1 > ~/tmp/tmpstring_fun
+        pwd >> ~/tmp/tmpstring_fun
+    fi
+    local lines
+    lines=($(\cat ~/tmp/filepath_fun))
+    lines1=($(\cat ~/tmp/filepath_fun_abs))
+    if [[ ${#lines[@]} = 0 ]]; then
+        echo "Not found"
+        return
+    fi
+    local pathname
+    local choice
+    local attribute
+    local filehead
+    if [[ ${#lines[@]} > 0 ]]; then
+        while [[ -z "$pathname" ]]; do
+            local index=1
+            local line
+            for line in ${lines[@]}; do
+                #printf "[\033[1;32m%6s\033[0m] \033[0;35m%s\033[0m \033[0;36m:\033[0m\033[0;32m%s\033[0m\033[0;36m:\033[0m " "$index" $line "$(\awk "NR==$index" ~/tmp/fileline)"
+                printf "[\033[1;32m%6s\033[0m] \033[0;35m%s\033[0m \033[0;36m:\033[0m\033[0;32m*\033[0m\033[0;36m:\033[0m " "$index" $line
+                #awk "NR==$index" ~/tmp/filenote_fun | grep --color "$tmp"
+                #local note=($(\awk "NR==$index" ~/tmp/filenote_fun | grep --color "$tmp"))
+				case "$2" in
+				"file")
+	                attribute=($(\file .$line | awk '{$1=""; print $0}'))
+		            echo "$1: $attribute" | grep --color $tmp
+				;;
+				"ls")
+	                attribute=$(ls -lh .$line  | awk '{print $5 " " $6 " " $7 " " $8}')
+		            echo "$1: $attribute" | grep --color $tmp
+				;;
+				*)
+	                attribute=($(\file .$line | awk '{$1=""; print $0}'))
+		            echo "$1: $attribute" | grep --color $tmp
+				;;
+				esac
+
+                index=$(($index + 1))
+            done
+            echo
+            echo -ne "\033[1;33mSelect one\033[0m: "
+            unset choice
+            read choice
+            if [[ $choice -gt ${#lines[@]} || $choice -lt 1 ]]; then
+                echo "Invalid choice"
+                continue
+            fi
+            pathname=${lines1[$(($choice-1))]}
+        done
+    else
+        pathname=${lines1[0]}
+    fi
+	if [ "$2" == "cp" ];then
+		cp -i $pathname .
+		return
+	fi
+    if [ -f "$pathname" ]; then
+        vim $pathname
+    else
+        cd $pathname
+    fi
+}
+
+go $1 $2

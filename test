@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#export AAA=xxxxx
+
+trap func SIGHUP 2 SIGQUIT
+
+function func () {
+	echo test
+}
+
+XX=
+read XX
+echo $XX

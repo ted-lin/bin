@@ -1,0 +1,31 @@
+#!/bin/bash
+
+PROJECT=$2
+DATEY=$(date "+%Y/%m")
+DATETAG=$(date "+%Y%m%d%H%M")
+SOURCE=$1
+AUTHOR="T. Y. Lin"
+DETAILAUTHOR="Tzu-Yuan Lin"
+COMPANY="depts system software ASUS."
+EDITOR=vim
+
+
+touch $SOURCE
+echo  /\* ========================================================================= >>$1 
+echo  \* Project: $PROJECT                                                          >>$1 
+echo  \*                                                                            >>$1 
+echo  \* $SOURCE:                                                                   >>$1 
+echo  \*                                                                            >>$1 
+echo  \* Written by:  $AUTHOR, $DATEY                                               >>$1 
+echo  \*                                                                            >>$1 
+echo  \* Copyright \(C\) $DATEY by $DETAILAUTHOR, $COMPANY                          >>$1 
+echo  \* ========================================================================== >>$1 
+echo  \*/                                                                           >>$1 
+echo  >> $1
+echo  >> $1
+echo  >> $1
+
+$EDITOR $1
+
+
+
